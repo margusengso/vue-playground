@@ -1,9 +1,19 @@
 <script setup lang="ts">
-import { reactive } from "vue";
 import { useItemsStore, type ItemId } from "@/stores/items";
-import { ref, onMounted } from "vue";
+import { ref, onMounted, shallowRef } from "vue";
+import { useResizeObserver } from "@vueuse/core";
 
 const loading = ref<boolean>(false);
+
+const el = shallowRef<HTMLElement | null>(null);
+
+useResizeObserver(el, (entries) => {
+  const entry = entries[0];
+  const { width, height } = entry?.contentRect;
+  if (width) {
+    console.log("VueUse dimensions: " + width + " : " + height);
+  }
+})
 
 
 const addBtn = ref<HTMLButtonElement | null>(null);
@@ -15,9 +25,6 @@ onMounted(() => {
 });
 
 const s = useItemsStore();
-
-// UI-only state: always a number. 0 means "no last delta yet"
-const lastDeltaById = reactive<Record<ItemId, number>>({});
 
 /*function add() {
   s.addItem();
@@ -32,29 +39,23 @@ function add() {
 }
 
 function inc(id: ItemId) {
-  const delta = s.inc(id);
-  lastDeltaById[id] = delta;
-}
-
-function lastDelta(id: ItemId): number {
-  return lastDeltaById[id] ?? 0;
+  s.inc(id);
 }
 
 function resetItem(id: ItemId) {
   s.reset(id);
-  lastDeltaById[id] = 0;
 }
 
 function removeItem(id: ItemId) {
   s.remove(id);
-  delete lastDeltaById[id]; // optional cleanup
 }
 </script>
 
 <template>
-  <div class="mx-auto max-w-xl p-4">
-    <div class="mb-3 flex items-baseline justify-between">
-      <h1 class="text-xl font-semibold">Items</h1>
+  <div class="mx-auto max-w-xl p-4" ref="el">
+    <div class="mb-3 flex items-baseline justify-between flex-col">
+      <p class="text-[50px] text-blue-400 italic">Items</p>
+
       <div class="text-sm text-slate-600">
         Total:
         <span class="font-semibold text-slate-900">{{ s.total }}</span>
@@ -70,7 +71,7 @@ function removeItem(id: ItemId) {
       >
         <button
           type="button"
-          class="flex w-full items-center justify-between text-left"
+          class="flex w-full items-center justify-between text-left border-amber-500 border-2 rounded-lg p-2"
           @click="inc(it.id)"
         >
           <div class="flex flex-col">
@@ -80,8 +81,8 @@ function removeItem(id: ItemId) {
 
             <span class="text-xs text-black/70">
               Adds +{{ it.step }} each click
-              <span v-if="lastDelta(it.id) !== 0">
-                (last +{{ lastDelta(it.id) }})
+              <span v-if="it.step !== 0">
+                (last +{{ it.step }})
               </span>
             </span>
           </div>
@@ -111,15 +112,18 @@ function removeItem(id: ItemId) {
       </li>
     </ul>
 
-    <button
-      type="button"
-      class="mt-4 w-full rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800"
+    <el-button
+      type="success"
+      class="mt-4"
       @click="add"
     >
       + Add item
-    </button>
+    </el-button>
 
-    <button ref="addBtn">AddTEST</button>
+<!--    <button ref="addBtn" >AddTEST</button>
+
+    <el-button type="success" style="margin-left: 6px;">El Plus</el-button>-->
+
 
     <p class="mt-2 text-sm text-slate-600">
       {{ s.items.length }} items
