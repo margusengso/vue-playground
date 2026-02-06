@@ -3,6 +3,8 @@ import { useItemsStore, type ItemId } from "@/stores/items";
 import { ref, onMounted, shallowRef } from "vue";
 import { useResizeObserver } from "@vueuse/core";
 
+import ItemsListItem from "@/components/ItemsListItem.vue";
+
 const loading = ref<boolean>(false);
 
 const el = shallowRef<HTMLElement | null>(null);
@@ -13,22 +15,17 @@ useResizeObserver(el, (entries) => {
   if (width) {
     console.log("VueUse dimensions: " + width + " : " + height);
   }
-})
-
+});
 
 const addBtn = ref<HTMLButtonElement | null>(null);
 
 onMounted(() => {
   setTimeout(() => {
     addBtn.value?.focus();
-  }, 2000)
+  }, 2000);
 });
 
 const s = useItemsStore();
-
-/*function add() {
-  s.addItem();
-}*/
 
 function add() {
   loading.value = true;
@@ -63,71 +60,23 @@ function removeItem(id: ItemId) {
     </div>
 
     <ul class="flex flex-col gap-3">
-      <li
+      <ItemsListItem
         v-for="it in s.items"
         :key="it.id"
-        class="rounded-xl p-4 shadow-sm ring-1 ring-black/5"
-        :style="{ backgroundColor: it.color }"
-      >
-        <button
-          type="button"
-          class="flex w-full items-center justify-between text-left border-amber-500 border-2 rounded-lg p-2"
-          @click="inc(it.id)"
-        >
-          <div class="flex flex-col">
-            <span class="text-sm font-medium text-black/80">
-              Item {{ it.id.slice(-6) }}
-            </span>
-
-            <span class="text-xs text-black/70">
-              Adds +{{ it.step }} each click
-              <span v-if="it.step !== 0">
-                (last +{{ it.step }})
-              </span>
-            </span>
-          </div>
-
-          <div class="text-lg font-bold text-black/90">
-            {{ it.sum }}
-          </div>
-        </button>
-
-        <div class="mt-3 flex gap-2">
-          <button
-            type="button"
-            class="rounded-lg bg-white/70 px-3 py-1 text-xs font-medium text-black/80 hover:bg-white/80"
-            @click="resetItem(it.id)"
-          >
-            Reset
-          </button>
-
-          <button
-            type="button"
-            class="rounded-lg bg-white/70 px-3 py-1 text-xs font-medium text-black/80 hover:bg-white/80"
-            @click="removeItem(it.id)"
-          >
-            Remove
-          </button>
-        </div>
-      </li>
+        :it="it"
+        @inc="inc"
+        @reset="resetItem"
+        @remove="removeItem"
+      />
     </ul>
 
-    <el-button
-      type="success"
-      class="mt-4"
-      @click="add"
-    >
+    <el-button type="success" class="mt-4" @click="add">
       + Add item
     </el-button>
-
-<!--    <button ref="addBtn" >AddTEST</button>
-
-    <el-button type="success" style="margin-left: 6px;">El Plus</el-button>-->
-
 
     <p class="mt-2 text-sm text-slate-600">
       {{ s.items.length }} items
     </p>
-    {{loading}}
+    {{ loading }}
   </div>
 </template>
