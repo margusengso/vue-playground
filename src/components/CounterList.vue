@@ -25,6 +25,7 @@ onMounted(() => {
   }, 2000);
 });
 
+
 const s = useItemsStore();
 
 function add() {
